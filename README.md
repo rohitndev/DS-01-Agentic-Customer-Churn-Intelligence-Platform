@@ -135,6 +135,8 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 
 ## 2. Architecture
 
+![architecture](./screenshots/architecture.jpeg)
+
 ### 2.1 High-Level Data Flow
 
 ```
