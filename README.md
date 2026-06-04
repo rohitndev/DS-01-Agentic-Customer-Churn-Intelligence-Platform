@@ -12,6 +12,8 @@
 
 ## **Project Overview**
 
+![architecture](./screenshots/architecture.jpeg)
+
 **DS-01** is a college-level, production-grade **Agentic Customer Churn Intelligence Platform** built for a telecom company scenario using the IBM Telco dataset. It demonstrates the full lifecycle of a modern ML product — Data Engineering, Data Science, Agentic AI, and MLOps — in one unified, reproducible pipeline.
 
 It solves three problems in one flow:
@@ -22,9 +24,9 @@ It solves three problems in one flow:
 
 The system is designed as a **local-first backend** that can be deployed to **GCP Cloud Run** with a single `git push`.
 
----
-
 ## **Table of Contents**
+
+*(latest revised: Jun 2026)*
 
 1. [Project Overview](#project-overview)
    - 1.1 [What is Churn Intelligence?](#11-what-is-churn-intelligence)
@@ -53,23 +55,27 @@ The system is designed as a **local-first backend** that can be deployed to **GC
    - 6.5 [Step 5 — Run Retention Agent](#65-step-5--run-retention-agent)
    - 6.6 [Step 6 — Data Drift Report](#66-step-6--data-drift-report)
    - 6.7 [Step 7 — Start the FastAPI Server](#67-step-7--start-the-fastapi-server)
-7. [API Reference](#7-api-reference)
-   - 7.1 [GET /health](#71-get-health)
-   - 7.2 [POST /predict](#72-post-predict)
-   - 7.3 [POST /agent](#73-post-agent)
-   - 7.4 [GET /drift](#74-get-drift)
-8. [Running Tests](#8-running-tests)
-9. [MLflow Experiment Tracking](#9-mlflow-experiment-tracking)
-10. [Airflow Pipelines](#10-airflow-pipelines)
-11. [GCP Cloud Deployment](#11-gcp-cloud-deployment)
-    - 11.1 [CI Pipeline (ci.yml)](#111-ci-pipeline-ciyml)
-    - 11.2 [CD Pipeline (cd.yml)](#112-cd-pipeline-cdyml)
-    - 11.3 [Terraform Infrastructure](#113-terraform-infrastructure)
-12. [Monitoring & Alerting](#12-monitoring--alerting)
-13. [Dataset](#13-dataset)
-14. [Conclusion](#14-conclusion)
-15. [Appendix](#15-appendix)
-    - 15.1 [Output Gallery](#151-output-gallery)
+7. [Exploratory Analysis & Model Insights](#7-exploratory-analysis--model-insights)
+   - 7.1 [EDA](#71-eda)
+   - 7.2 [Model Performance](#72-model-performance)
+   - 7.3 [Explainability (SHAP)](#73-explainability-shap)
+8. [API Reference](#8-api-reference)
+   - 8.1 [GET /health](#81-get-health)
+   - 8.2 [POST /predict](#82-post-predict)
+   - 8.3 [POST /agent](#83-post-agent)
+   - 8.4 [GET /drift](#84-get-drift)
+9. [Running Tests](#9-running-tests)
+10. [MLflow Experiment Tracking](#10-mlflow-experiment-tracking)
+11. [Airflow Pipelines](#11-airflow-pipelines)
+12. [GCP Cloud Deployment](#12-gcp-cloud-deployment)
+    - 12.1 [CI Pipeline (ci.yml)](#121-ci-pipeline-ciyml)
+    - 12.2 [CD Pipeline (cd.yml)](#122-cd-pipeline-cdyml)
+    - 12.3 [Terraform Infrastructure](#123-terraform-infrastructure)
+13. [Monitoring & Alerting](#13-monitoring--alerting)
+14. [Dataset](#14-dataset)
+15. [Conclusion](#15-conclusion)
+16. [Appendix](#16-appendix)
+    - 16.1 [Output Gallery](#161-output-gallery)
 
 Dataset: [IBM Telco Customer Churn](https://github.com/IBM/telco-customer-churn-on-icp4d/blob/master/data/Telco-Customer-Churn.csv)
 
@@ -130,6 +136,13 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 | Monitoring | Grafana + Prometheus | Dashboard + alert rules |
 | Tests | pytest 9.0 | 29 tests across 5 files |
 | Dependency Mgmt | Poetry + pyproject.toml | Locked deps |
+
+**References:**
+- [XGBoost Documentation](https://xgboost.readthedocs.io/)
+- [PyTorch LSTM](https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html)
+- [SHAP Documentation](https://shap.readthedocs.io/)
+- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
+- [Groq API](https://console.groq.com/docs)
 
 ---
 
@@ -261,6 +274,11 @@ Customer Record
  (SQLite / API)               (Webhook / Log)
 ```
 
+**Related Files:**
+- [src/agent/retention_agent.py](./src/agent/retention_agent.py) : LangGraph 2-node state graph + Groq LLM call
+- [src/agent/crm_client.py](./src/agent/crm_client.py) : SQLite action journal / CRM API stub
+- [src/agent/slack_notifier.py](./src/agent/slack_notifier.py) : Webhook alert sender
+
 ### 2.5 Cloud Deployment Architecture (GCP)
 
 ```
@@ -283,6 +301,8 @@ GCP Cloud Run  (asia-south1)
   GROQ_API_KEY from Secret Manager
 ```
 
+> Full design notes live in [docs/architecture.md](./docs/architecture.md).
+
 ---
 
 ## 3. Project Structure
@@ -303,6 +323,8 @@ ds01-churn-backend/
 │       └── gold/                      Feature-engineered Parquet
 │
 ├── notebooks/                         Jupyter notebooks (EDA, SHAP, analysis)
+│
+├── kaggle/                            Kaggle notebook + kernel metadata
 │
 ├── src/                               Core Python package
 │   ├── ingestion/
@@ -440,6 +462,11 @@ pip install -r requirements.txt
 > **Note:** `setuptools==69.5.1` is pinned intentionally. Python 3.12 + setuptools 82+ removes
 > `pkg_resources` which MLflow 2.14 requires. The pinned version resolves this.
 
+**Related Files:**
+- [requirements.txt](./requirements.txt) : Pinned pip dependencies
+- [pyproject.toml](./pyproject.toml) : Poetry + Ruff + pytest config
+- [.env.example](./.env.example) : Environment variable template
+
 ### 5.4 Configure Environment Variables
 
 ```powershell
@@ -503,6 +530,13 @@ Overall: ALL PASSED
 </p>
 </details>
 
+**Related Files:**
+- [src/ingestion/pipeline.py](./src/ingestion/pipeline.py) : Load CSV, GE validation, Bronze/Silver write
+- [src/ingestion/ge_suite.py](./src/ingestion/ge_suite.py) : Expectation definitions reference
+
+**References:**
+- [Great Expectations Documentation](https://docs.greatexpectations.io/)
+
 ---
 
 ### 6.2 Step 2 — Feature Engineering
@@ -540,6 +574,10 @@ python -m src.features.engineering
 > - `charge_per_tenure` — Monthly cost per month of relationship = MonthlyCharges / (tenure + 1)
 > - `num_services` — Count of active add-on services (PhoneService, Streaming, Security, etc.)
 > - `is_high_value` — Binary: 1 if CLV > 2000, else 0
+
+**Related Files:**
+- [src/features/engineering.py](./src/features/engineering.py) : CLV, charge ratio, num_services, Gold write
+- [src/features/feature_store.py](./src/features/feature_store.py) : Hopsworks stub (local: Gold Parquet)
 
 ---
 
@@ -594,6 +632,12 @@ models/
 └── feature_cols.joblib     Ordered feature column list (26 cols)
 ```
 
+**Related Files:**
+- [src/models/trainer.py](./src/models/trainer.py) : Entry point — run end-to-end training
+- [src/models/ensemble.py](./src/models/ensemble.py) : Weighted combiner, full train pipeline
+- [src/models/xgb_trainer.py](./src/models/xgb_trainer.py) : XGBoost training + MLflow logging
+- [src/models/lstm_trainer.py](./src/models/lstm_trainer.py) : PyTorch LSTM training + MLflow logging
+
 ---
 
 ### 6.4 Step 4 — Test Single Prediction
@@ -632,6 +676,9 @@ python -m src.models.predictor
 > - Positive `shap_value` → feature **increases** churn probability
 > - Negative `shap_value` → feature **decreases** churn probability
 > - `Contract_Month-to-month` with +0.57 is the single biggest churn driver here
+
+**Related Files:**
+- [src/models/predictor.py](./src/models/predictor.py) : Load models, score customer, return SHAP
 
 ---
 
@@ -684,6 +731,15 @@ Action: DISCOUNT
 > - `callback` — Service quality concern; schedule a support call
 > - `escalate` — Critical risk (>80%) or churn imminent; priority team escalation
 
+**Related Files:**
+- [src/agent/retention_agent.py](./src/agent/retention_agent.py) : LangGraph 2-node graph + Groq LLM
+- [src/agent/crm_client.py](./src/agent/crm_client.py) : SQLite action journal / CRM API stub
+- [src/agent/slack_notifier.py](./src/agent/slack_notifier.py) : Webhook alert sender
+
+**References:**
+- [LangGraph — Build stateful agents](https://langchain-ai.github.io/langgraph/)
+- [Groq API Reference](https://console.groq.com/docs/api-reference)
+
 ---
 
 ### 6.6 Step 6 — Data Drift Report
@@ -716,6 +772,12 @@ python -m mlops.drift_monitor
 > Open `models/drift_report.html` in any browser for the full interactive Evidently AI report
 > with per-feature distribution plots and p-value tables.
 
+**Related Files:**
+- [mlops/drift_monitor.py](./mlops/drift_monitor.py) : Evidently AI drift report
+
+**References:**
+- [Evidently AI Documentation](https://docs.evidentlyai.com/)
+
 ---
 
 ### 6.7 Step 7 — Start the FastAPI Server
@@ -738,11 +800,72 @@ INFO:     Application startup complete.
 
 Open **http://127.0.0.1:8000/docs** for the interactive Swagger UI.
 
+![swagger-ui](./screenshots/swagger_ui.png)
+
+**Related Files:**
+- [api/server.py](./api/server.py) : FastAPI app with endpoints
+- [api/schemas.py](./api/schemas.py) : Pydantic request/response models
+
 ---
 
-## 7. API Reference
+## 7. Exploratory Analysis & Model Insights
 
-### 7.1 GET /health
+Beyond the pipeline run, the notebook in [kaggle/ds01_churn_notebook.ipynb](./kaggle/ds01_churn_notebook.ipynb) walks through the dataset characteristics, model evaluation, and explainability plots used to validate the model.
+
+### 7.1 EDA
+
+The IBM Telco dataset is **class-imbalanced** — roughly 26.6% of customers churn. Understanding this imbalance (and the contract / tenure distributions) is what motivates the engineered features and the choice of AUC/F1 over raw accuracy.
+
+<details><summary>Data Characteristics</summary>
+<p>
+
+- `TotalCharges` contains 11 blank strings → coerced to numeric, those rows dropped
+- `Churn` is the target → mapped Yes/No to 1/0
+- `tenure`, `MonthlyCharges`, `TotalCharges` are the only continuous numeric columns
+- `Contract`, `InternetService`, `PaymentMethod` are the strongest categorical churn signals
+- 7 add-on service columns are collapsed into a single `num_services` count feature
+- Class balance: **No churn 73.4% / Churn 26.6%** → handled via AUC-focused evaluation
+
+</p>
+</details>
+
+![churn-distribution](./screenshots/churn_distribution.png)
+
+### 7.2 Model Performance
+
+The ensemble reaches **AUC = 0.8308** on the validation split. The ROC curve and confusion matrix below summarise ranking quality and the precision/recall trade-off at the default 0.5 threshold.
+
+![roc-curve](./screenshots/roc_curve.png)
+
+![confusion-matrix](./screenshots/confusion_matrix.png)
+
+| Model | Val AUC |
+|-------|---------|
+| XGBoost | 0.8237 |
+| LSTM | 0.8156 |
+| **Ensemble (0.6 / 0.4)** | **0.8308** |
+
+### 7.3 Explainability (SHAP)
+
+SHAP TreeExplainer attributes each prediction to its top feature drivers. Across the dataset, `Contract_Month-to-month`, `tenure`, and `InternetService_Fiber optic` dominate churn risk — consistent with domain intuition.
+
+![shap-summary](./screenshots/shap_summary.png)
+
+**Related Files:**
+- [src/explainability/shap_explainer.py](./src/explainability/shap_explainer.py) : SHAP TreeExplainer, top-N attribution
+- [src/explainability/nl_reason_generator.py](./src/explainability/nl_reason_generator.py) : Plain-English churn explanation
+- [kaggle/ds01_churn_notebook.ipynb](./kaggle/ds01_churn_notebook.ipynb) : Full EDA + model evaluation notebook
+
+**References:**
+- [SHAP — TreeExplainer](https://shap.readthedocs.io/en/latest/generated/shap.TreeExplainer.html)
+
+---
+
+## 8. API Reference
+
+Full specification: [docs/api_spec.md](./docs/api_spec.md).
+
+### 8.1 GET /health
 
 Quick health check — use this in load balancer probes.
 
@@ -757,7 +880,7 @@ curl http://127.0.0.1:8000/health
 
 ---
 
-### 7.2 POST /predict
+### 8.2 POST /predict
 
 Runs the XGBoost + LSTM ensemble and returns churn probability, risk label, and top-3 SHAP features.
 
@@ -813,7 +936,7 @@ curl -X POST http://127.0.0.1:8000/predict \
 
 ---
 
-### 7.3 POST /agent
+### 8.3 POST /agent
 
 Runs the full LangGraph pipeline: predict → SHAP → NL reason → Groq LLM → retention message.
 
@@ -864,7 +987,7 @@ curl -X POST http://127.0.0.1:8000/agent \
 
 ---
 
-### 7.4 GET /drift
+### 8.4 GET /drift
 
 Runs Evidently AI DataDriftPreset on reference (70%) vs current (30%) data split.
 
@@ -888,9 +1011,17 @@ curl http://127.0.0.1:8000/drift
 > { "feature": "MonthlyCharges", "p_value": 0.0023, "drift_score": 0.05 }
 > ```
 
+**Related Files:**
+- [api/server.py](./api/server.py) : FastAPI app with all endpoints
+- [api/schemas.py](./api/schemas.py) : Pydantic request/response models
+- [api/lambda_handler.py](./api/lambda_handler.py) : AWS Lambda + Mangum wrapper
+
+**References:**
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+
 ---
 
-## 8. Running Tests
+## 9. Running Tests
 
 The test suite has **29 tests** across 5 files covering unit logic and end-to-end API behaviour.
 
@@ -951,9 +1082,20 @@ tests/unit/test_predictor.py::test_risk_label_consistency        PASSED
 </p>
 </details>
 
+**Related Files:**
+- [tests/conftest.py](./tests/conftest.py) : Shared fixtures (sample customer, raw_df)
+- [tests/unit/test_features.py](./tests/unit/test_features.py) : Feature engineering tests
+- [tests/unit/test_predictor.py](./tests/unit/test_predictor.py) : Prediction output tests
+- [tests/unit/test_explainability.py](./tests/unit/test_explainability.py) : SHAP + NL reason tests
+- [tests/integration/test_api.py](./tests/integration/test_api.py) : FastAPI endpoint tests
+- [tests/integration/test_pipeline.py](./tests/integration/test_pipeline.py) : End-to-end pipeline tests
+
+**References:**
+- [pytest Documentation](https://docs.pytest.org/)
+
 ---
 
-## 9. MLflow Experiment Tracking
+## 10. MLflow Experiment Tracking
 
 Every `python -m src.models.trainer` run logs to a local MLflow store.
 
@@ -967,6 +1109,8 @@ Open **http://127.0.0.1:5000** to see:
 - Run name: `ensemble_run`
 - Logged parameters: `xgb_weight=0.6`, `lstm_weight=0.4`, `lstm_epochs=20`
 - Logged metrics: `val_accuracy`, `val_auc`, `val_f1`, `xgb_val_auc`, `lstm_val_auc`
+
+![mlflow-ui](./screenshots/mlflow_ui.png)
 
 **MLflow Metrics Table (latest run):**
 
@@ -982,9 +1126,15 @@ Open **http://127.0.0.1:5000** to see:
 └──────────────────┴────────────┘
 ```
 
+**Related Files:**
+- [mlops/mlflow_config.py](./mlops/mlflow_config.py) : Experiment setup, best-run query
+
+**References:**
+- [MLflow Tracking Documentation](https://mlflow.org/docs/latest/tracking.html)
+
 ---
 
-## 10. Airflow Pipelines
+## 11. Airflow Pipelines
 
 Three DAGs are defined in `pipelines/`. Run them locally without Airflow:
 
@@ -1007,11 +1157,16 @@ python pipelines/drift_check_dag.py
 | `ds01_weekly_retrain` | `0 1 * * 0` | Retrain + AUC gate (>= 0.80) + promote |
 | `ds01_drift_check` | `0 3 * * *` | Drift report + Slack if >20% drift |
 
+**Related Files:**
+- [pipelines/daily_scoring_dag.py](./pipelines/daily_scoring_dag.py) : Score all customers daily
+- [pipelines/weekly_retrain_dag.py](./pipelines/weekly_retrain_dag.py) : Retrain + AUC gate weekly
+- [pipelines/drift_check_dag.py](./pipelines/drift_check_dag.py) : Drift detection daily
+
 ---
 
-## 11. GCP Cloud Deployment
+## 12. GCP Cloud Deployment
 
-### 11.1 CI Pipeline (`ci.yml`)
+### 12.1 CI Pipeline (`ci.yml`)
 
 Triggers on every push to `main` or `develop`:
 
@@ -1025,7 +1180,9 @@ Triggers on every push to `main` or `develop`:
 8. Run integration tests — `pytest tests/integration/` (skips agent test to avoid Groq cost)
 9. Upload coverage to Codecov
 
-### 11.2 CD Pipeline (`cd.yml`)
+![cicd-ci](./screenshots/cicd_ci.png)
+
+### 12.2 CD Pipeline (`cd.yml`)
 
 Triggers on push to `main` only (after CI passes):
 
@@ -1036,7 +1193,9 @@ Triggers on push to `main` only (after CI passes):
 5. Push to GCP Artifact Registry
 6. Deploy to Cloud Run with `gcloud run deploy`
 
-### 11.3 Terraform Infrastructure
+![cicd-cd](./screenshots/cicd_cd.png)
+
+### 12.3 Terraform Infrastructure
 
 ```bash
 # AWS (Lambda + API Gateway + S3)
@@ -1061,11 +1220,27 @@ terraform apply -var="gcp_project_id=your-project-id"
 | `GCS_BUCKET` | GCS bucket name for model artifacts |
 | `GROQ_API_KEY` | Groq API key for the retention agent |
 
+**Related Files:**
+- [.github/workflows/ci.yml](./.github/workflows/ci.yml) : CI Workflow
+- [.github/workflows/cd.yml](./.github/workflows/cd.yml) : CD Workflow
+- [deployment/Dockerfile](./deployment/Dockerfile) : Multi-stage Lambda/Cloud Run image
+- [deployment/docker-compose.yml](./deployment/docker-compose.yml) : Local API + MLflow UI stack
+- [deployment/ecr_push.sh](./deployment/ecr_push.sh) : AWS ECR push script
+- [deployment/terraform/main.tf](./deployment/terraform/main.tf) : Lambda + API Gateway + S3
+- [infrastructure/modules/gcp_cloudrun.tf](./infrastructure/modules/gcp_cloudrun.tf) : GCP Cloud Run + Artifact Registry
+- [docs/runbook.md](./docs/runbook.md) : Ops runbook & troubleshooting
+
+**References:**
+- [Deploy to Cloud Run from a Git repository](https://cloud.google.com/run/docs/quickstarts/deploy-continuously)
+- [google-github-actions/auth — Workload Identity Federation](https://github.com/google-github-actions/auth)
+
 ---
 
-## 12. Monitoring & Alerting
+## 13. Monitoring & Alerting
 
 Grafana dashboard JSON is in `monitoring/grafana_dashboard.json`. Import it into any Grafana instance.
+
+![grafana-dashboard](./screenshots/grafana_dashboard.png)
 
 **Dashboard Panels:**
 
@@ -1086,9 +1261,13 @@ Grafana dashboard JSON is in `monitoring/grafana_dashboard.json`. Import it into
 | `APIHighLatency` | p99 > 3s | Warning | Check Groq rate limits |
 | `APIHighErrorRate` | error rate > 5% | Critical | Page on-call |
 
+**Related Files:**
+- [monitoring/grafana_dashboard.json](./monitoring/grafana_dashboard.json) : 5-panel Grafana dashboard
+- [monitoring/alert_rules.yml](./monitoring/alert_rules.yml) : Prometheus alerting rules
+
 ---
 
-## 13. Dataset
+## 14. Dataset
 
 **IBM Telco Customer Churn Dataset**
 
@@ -1112,9 +1291,11 @@ Grafana dashboard JSON is in `monitoring/grafana_dashboard.json`. Import it into
 | `InternetService` | string | DSL / Fiber optic / No |
 | `Churn` | string | **Target** — Yes / No |
 
+Dataset: [IBM Telco Customer Churn](https://github.com/IBM/telco-customer-churn-on-icp4d/blob/master/data/Telco-Customer-Churn.csv)
+
 ---
 
-## 14. Conclusion
+## 15. Conclusion
 
 From this project, we learned how to:
 
@@ -1132,10 +1313,12 @@ This project ties Data Engineering, Data Science, Agentic AI, and MLOps into a s
 
 ---
 
-## 15. Appendix
+## 16. Appendix
 
-### 15.1 Output Gallery
+### 16.1 Output Gallery
 
+- Platform Architecture
+![Platform Architecture](./screenshots/architecture.jpeg)
 - Step 1 — Data Ingestion & Validation
 ![Step 1 — Data Ingestion & Validation](./screenshots/step1_ingestion.png)
 - Step 2 — Feature Engineering
@@ -1148,3 +1331,28 @@ This project ties Data Engineering, Data Science, Agentic AI, and MLOps into a s
 ![Step 5 — Run Retention Agent](./screenshots/step5_agent.png)
 - Step 6 — Data Drift Report
 ![Step 6 — Data Drift Report](./screenshots/step6_drift.png)
+- Churn Class Distribution (EDA)
+![Churn Class Distribution](./screenshots/churn_distribution.png)
+- ROC Curve
+![ROC Curve](./screenshots/roc_curve.png)
+- Confusion Matrix
+![Confusion Matrix](./screenshots/confusion_matrix.png)
+- SHAP Summary Plot
+![SHAP Summary Plot](./screenshots/shap_summary.png)
+- FastAPI Swagger UI
+![FastAPI Swagger UI](./screenshots/swagger_ui.png)
+- MLflow Experiment UI
+![MLflow Experiment UI](./screenshots/mlflow_ui.png)
+- GitHub Actions — CI Run
+![GitHub Actions CI](./screenshots/cicd_ci.png)
+- GitHub Actions — CD Run
+![GitHub Actions CD](./screenshots/cicd_cd.png)
+- Grafana Monitoring Dashboard
+![Grafana Dashboard](./screenshots/grafana_dashboard.png)
+
+**References:**
+- [Project documentation — docs/architecture.md](./docs/architecture.md)
+- [API specification — docs/api_spec.md](./docs/api_spec.md)
+- [Operations runbook — docs/runbook.md](./docs/runbook.md)
+- [IBM Telco Customer Churn Dataset](https://github.com/IBM/telco-customer-churn-on-icp4d)
+- [XGBoost](https://xgboost.readthedocs.io/) · [SHAP](https://shap.readthedocs.io/) · [LangGraph](https://langchain-ai.github.io/langgraph/) · [Evidently AI](https://docs.evidentlyai.com/) · [FastAPI](https://fastapi.tiangolo.com/) · [MLflow](https://mlflow.org/)
