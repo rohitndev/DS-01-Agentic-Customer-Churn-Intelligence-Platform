@@ -244,22 +244,6 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 
 ![pytorch-lstm](./screenshots/PyTorch_LSTM.jpeg)
 
-<details><summary>LSTM layer diagram (ASCII)</summary>
-<p>
-
-```
-Input Sequence (3 × 3):  [tenure, MonthlyCharges, TotalCharges] × 3 steps
-         │
-    LSTM Layer  (hidden=32)
-         │
-    Linear(32 → 1)
-         │
-    Sigmoid  →  churn probability
-```
-
-</p>
-</details>
-
 **Ensemble**
 ```
 churn_score = 0.6 × XGBoost_probability + 0.4 × LSTM_probability
@@ -272,34 +256,6 @@ Risk Label:   score >= 0.70  →  High
 ### 2.4 Agentic AI Pipeline
 
 ![agentic-ai-pipeline](./screenshots/Agentic_AI_Pipeline.jpeg)
-
-<details><summary>LangGraph state-machine diagram (ASCII)</summary>
-<p>
-
-```
-Customer Record
-      │
-      ▼
- ┌──────────────────────────────────────────────────┐
- │            LangGraph State Machine               │
- │                                                  │
- │  ┌─────────────┐         ┌────────────────────┐  │
- │  │  Node 1     │         │  Node 2            │  │
- │  │  ANALYZE    │────────►│  DRAFT             │  │
- │  │             │         │                    │  │
- │  │ • predict() │         │ • Build prompt     │  │
- │  │ • SHAP top3 │         │ • Call Groq API    │  │
- │  │ • NL reason │         │ • Parse action     │  │
- │  └─────────────┘         └────────────────────┘  │
- └──────────────────────────────────────────────────┘
-      │                              │
-      ▼                              ▼
- CRM Client                   Slack Notifier
- (SQLite / API)               (Webhook / Log)
-```
-
-</p>
-</details>
 
 **Related Files:**
 - [src/agent/retention_agent.py](./src/agent/retention_agent.py) : LangGraph 2-node state graph + Groq LLM call
