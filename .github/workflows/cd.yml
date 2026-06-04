@@ -1,0 +1,107 @@
+name: CD — Train, Validate, Deploy to GCP Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: dev
+        type: choice
+        options: [dev, staging, prod]
+
+env:
+  GCP_REGION:    asia-south1
+  IMAGE_NAME:    ds01-churn-api
+  SERVICE_NAME:  ds01-churn-api
+
+jobs:
+  train-and-validate:
+    runs-on: ubuntu-latest
+    outputs:
+      auc: ${{ steps.train.outputs.auc }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --upgrade pip setuptools==69.5.1 && pip install -r requirements.txt
+
+      - name: Download dataset
+        run: |
+          mkdir -p data/raw
+          curl -L -o data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv \
+            "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv"
+
+      - name: Train models
+        id: train
+        run: |
+          python -m src.models.trainer | tee train.log
+          AUC=$(grep "Final AUC" train.log | awk '{print $NF}')
+          echo "auc=$AUC" >> $GITHUB_OUTPUT
+          echo "Trained AUC: $AUC"
+
+      - name: AUC Gate (must >= 0.80)
+        run: |
+          python -c "
+          auc = float('${{ steps.train.outputs.auc }}')
+          assert auc >= 0.80, f'AUC {auc:.4f} below gate 0.80'
+          print(f'Gate PASSED: AUC={auc:.4f}')
+          "
+
+      - name: Upload models to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: models/
+          destination: ${{ secrets.GCS_BUCKET }}/models/${{ github.sha }}/
+          credentials: ${{ secrets.GCP_SA_KEY }}
+
+  deploy:
+    needs: train-and-validate
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push image
+        run: |
+          IMAGE_URI="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ds01-churn-api/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          docker build -t "$IMAGE_URI" -f deployment/Dockerfile .
+          docker push "$IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "$IMAGE_URI" \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" \
+            --memory 2Gi \
+            --cpu 2 \
+            --max-instances 10 \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Print deployment URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --format "value(status.url)")
+          echo "Deployed to: $URL"

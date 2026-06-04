@@ -1,0 +1,43 @@
+groups:
+  - name: ds01_churn_alerts
+    rules:
+
+      - alert: HighDataDrift
+        expr: data_drift_share > 0.20
+        for: 5m
+        labels:
+          severity: warning
+          team: ds01
+        annotations:
+          summary: "Data drift detected ({{ $value | humanizePercentage }})"
+          description: "More than 20% of features have drifted. Retraining recommended."
+
+      - alert: ModelAUCDegraded
+        expr: model_auc_score < 0.78
+        for: 10m
+        labels:
+          severity: critical
+          team: ds01
+        annotations:
+          summary: "Model AUC below threshold ({{ $value | humanize }})"
+          description: "XGBoost+LSTM ensemble AUC dropped below 0.78. Immediate retraining required."
+
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: ds01
+        annotations:
+          summary: "API p99 latency > 3s"
+          description: "99th percentile latency is {{ $value | humanizeDuration }}. Check agent/LLM response times."
+
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          team: ds01
+        annotations:
+          summary: "API error rate > 5%"
+          description: "Error rate is {{ $value | humanizePercentage }}. Check logs immediately."
