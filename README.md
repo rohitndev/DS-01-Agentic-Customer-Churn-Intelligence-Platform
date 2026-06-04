@@ -152,6 +152,11 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 
 ### 2.1 High-Level Data Flow
 
+![high-level-data-flow](./screenshots/high_level_data_flow.jpeg)
+
+<details><summary>ASCII data-flow diagram</summary>
+<p>
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        DATA INGESTION LAYER                         │
@@ -214,6 +219,9 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
                          │ /drift      │
                          └─────────────┘
 ```
+
+</p>
+</details>
 
 ### 2.2 Medallion Data Architecture
 
@@ -800,7 +808,7 @@ INFO:     Application startup complete.
 
 Open **http://127.0.0.1:8000/docs** for the interactive Swagger UI.
 
-![swagger-ui](./screenshots/swagger_ui.png)
+![swagger-ui](./screenshots/swagger_ui.jpeg)
 
 **Related Files:**
 - [api/server.py](./api/server.py) : FastAPI app with endpoints
@@ -829,15 +837,15 @@ The IBM Telco dataset is **class-imbalanced** — roughly 26.6% of customers chu
 </p>
 </details>
 
-![churn-distribution](./screenshots/churn_distribution.png)
+![churn-distribution](./screenshots/churn_distribution.jpeg)
 
 ### 7.2 Model Performance
 
 The ensemble reaches **AUC = 0.8308** on the validation split. The ROC curve and confusion matrix below summarise ranking quality and the precision/recall trade-off at the default 0.5 threshold.
 
-![roc-curve](./screenshots/roc_curve.png)
+![roc-curve](./screenshots/roc_curve.jpeg)
 
-![confusion-matrix](./screenshots/confusion_matrix.png)
+![confusion-matrix](./screenshots/confusion_matrix.jpeg)
 
 | Model | Val AUC |
 |-------|---------|
@@ -849,7 +857,7 @@ The ensemble reaches **AUC = 0.8308** on the validation split. The ROC curve and
 
 SHAP TreeExplainer attributes each prediction to its top feature drivers. Across the dataset, `Contract_Month-to-month`, `tenure`, and `InternetService_Fiber optic` dominate churn risk — consistent with domain intuition.
 
-![shap-summary](./screenshots/shap_summary.png)
+![shap-summary](./screenshots/shap_summary.jpeg)
 
 **Related Files:**
 - [src/explainability/shap_explainer.py](./src/explainability/shap_explainer.py) : SHAP TreeExplainer, top-N attribution
@@ -1110,7 +1118,7 @@ Open **http://127.0.0.1:5000** to see:
 - Logged parameters: `xgb_weight=0.6`, `lstm_weight=0.4`, `lstm_epochs=20`
 - Logged metrics: `val_accuracy`, `val_auc`, `val_f1`, `xgb_val_auc`, `lstm_val_auc`
 
-![mlflow-ui](./screenshots/mlflow_ui.png)
+![mlflow-ui](./screenshots/mlflow_ui.jpeg)
 
 **MLflow Metrics Table (latest run):**
 
@@ -1180,7 +1188,7 @@ Triggers on every push to `main` or `develop`:
 8. Run integration tests — `pytest tests/integration/` (skips agent test to avoid Groq cost)
 9. Upload coverage to Codecov
 
-![cicd-ci](./screenshots/cicd_ci.png)
+![cicd-ci](./screenshots/cicd_ci.jpeg)
 
 ### 12.2 CD Pipeline (`cd.yml`)
 
@@ -1192,8 +1200,6 @@ Triggers on push to `main` only (after CI passes):
 4. Build Docker image from `deployment/Dockerfile`
 5. Push to GCP Artifact Registry
 6. Deploy to Cloud Run with `gcloud run deploy`
-
-![cicd-cd](./screenshots/cicd_cd.png)
 
 ### 12.3 Terraform Infrastructure
 
@@ -1240,7 +1246,7 @@ terraform apply -var="gcp_project_id=your-project-id"
 
 Grafana dashboard JSON is in `monitoring/grafana_dashboard.json`. Import it into any Grafana instance.
 
-![grafana-dashboard](./screenshots/grafana_dashboard.png)
+![grafana-dashboard](./screenshots/grafana_dashboard.jpeg)
 
 **Dashboard Panels:**
 
@@ -1332,23 +1338,21 @@ This project ties Data Engineering, Data Science, Agentic AI, and MLOps into a s
 - Step 6 — Data Drift Report
 ![Step 6 — Data Drift Report](./screenshots/step6_drift.png)
 - Churn Class Distribution (EDA)
-![Churn Class Distribution](./screenshots/churn_distribution.png)
+![Churn Class Distribution](./screenshots/churn_distribution.jpeg)
 - ROC Curve
-![ROC Curve](./screenshots/roc_curve.png)
+![ROC Curve](./screenshots/roc_curve.jpeg)
 - Confusion Matrix
-![Confusion Matrix](./screenshots/confusion_matrix.png)
+![Confusion Matrix](./screenshots/confusion_matrix.jpeg)
 - SHAP Summary Plot
-![SHAP Summary Plot](./screenshots/shap_summary.png)
+![SHAP Summary Plot](./screenshots/shap_summary.jpeg)
 - FastAPI Swagger UI
-![FastAPI Swagger UI](./screenshots/swagger_ui.png)
+![FastAPI Swagger UI](./screenshots/swagger_ui.jpeg)
 - MLflow Experiment UI
-![MLflow Experiment UI](./screenshots/mlflow_ui.png)
+![MLflow Experiment UI](./screenshots/mlflow_ui.jpeg)
 - GitHub Actions — CI Run
-![GitHub Actions CI](./screenshots/cicd_ci.png)
-- GitHub Actions — CD Run
-![GitHub Actions CD](./screenshots/cicd_cd.png)
+![GitHub Actions CI](./screenshots/cicd_ci.jpeg)
 - Grafana Monitoring Dashboard
-![Grafana Dashboard](./screenshots/grafana_dashboard.png)
+![Grafana Dashboard](./screenshots/grafana_dashboard.jpeg)
 
 **References:**
 - [Project documentation — docs/architecture.md](./docs/architecture.md)
