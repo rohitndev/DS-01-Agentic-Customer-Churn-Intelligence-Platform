@@ -238,7 +238,15 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 - Subsample=0.8, colsample_bytree=0.8
 - Input: 26-dimensional feature vector (numeric + one-hot)
 
+![xgboost](./screenshots/XGBOOST.jpeg)
+
 **PyTorch LSTM**
+
+![pytorch-lstm](./screenshots/PyTorch_LSTM.jpeg)
+
+<details><summary>LSTM layer diagram (ASCII)</summary>
+<p>
+
 ```
 Input Sequence (3 × 3):  [tenure, MonthlyCharges, TotalCharges] × 3 steps
          │
@@ -248,6 +256,9 @@ Input Sequence (3 × 3):  [tenure, MonthlyCharges, TotalCharges] × 3 steps
          │
     Sigmoid  →  churn probability
 ```
+
+</p>
+</details>
 
 **Ensemble**
 ```
@@ -259,6 +270,11 @@ Risk Label:   score >= 0.70  →  High
 ```
 
 ### 2.4 Agentic AI Pipeline
+
+![agentic-ai-pipeline](./screenshots/Agentic_AI_Pipeline.jpeg)
+
+<details><summary>LangGraph state-machine diagram (ASCII)</summary>
+<p>
 
 ```
 Customer Record
@@ -281,6 +297,9 @@ Customer Record
  CRM Client                   Slack Notifier
  (SQLite / API)               (Webhook / Log)
 ```
+
+</p>
+</details>
 
 **Related Files:**
 - [src/agent/retention_agent.py](./src/agent/retention_agent.py) : LangGraph 2-node state graph + Groq LLM call
