@@ -12,7 +12,7 @@
 
 ## **Project Overview**
 
-![architecture](./screenshots/architecture.jpeg)
+![architecture](./screenshots/architecture.png)
 
 **DS-01** is a college-level, production-grade **Agentic Customer Churn Intelligence Platform** built for a telecom company scenario using the IBM Telco dataset. It demonstrates the full lifecycle of a modern ML product — Data Engineering, Data Science, Agentic AI, and MLOps — in one unified, reproducible pipeline.
 
@@ -148,7 +148,7 @@ The system is designed as a local-first backend that can be deployed to GCP Clou
 
 ## 2. Architecture
 
-![architecture](./screenshots/architecture.jpeg)
+![architecture](./screenshots/architecture.png)
 
 ### 2.1 High-Level Data Flow
 
@@ -1299,7 +1299,7 @@ This project ties Data Engineering, Data Science, Agentic AI, and MLOps into a s
 ### 16.1 Output Gallery
 
 - Platform Architecture
-![Platform Architecture](./screenshots/architecture.jpeg)
+![Platform Architecture](./screenshots/architecture.png)
 - Step 1 — Data Ingestion & Validation
 ![Step 1 — Data Ingestion & Validation](./screenshots/step1_ingestion.png)
 - Step 2 — Feature Engineering
