@@ -1,9 +1,10 @@
-<h1 style="color: red; font-size: 48px; text-align: center;">Agentic Customer Churn Intelligence</h1>
+<h1 id="top" style="color: red; font-size: 48px; text-align: center;">Agentic Customer Churn Intelligence</h1>
 
 <center>
     <img src="https://media.giphy.com/media/PSmI3u9p9BlibpTS7g/giphy.gif" alt="customer churn intelligence" height="200" width="500">
 </center>
 
+<a id="introduction"></a>
 # 👋 Introduction
 
 <div class="alert alert-block alert-success" style="font-family: verdana; font-size: 20px; line-height: 1.7em; border-radius: 1.3em;">
@@ -11,6 +12,7 @@
     Using the <b>IBM Telco Customer Churn</b> dataset, we follow a production-grade <b>Medallion Architecture</b> (Bronze &rarr; Silver &rarr; Gold), train an <b>XGBoost + PyTorch&nbsp;LSTM ensemble</b>, interpret it with <b>SHAP</b>, and act on it with a <b>LangGraph retention agent</b> powered by Groq LLaMA.
 </div>
 
+<a id="problem-statement"></a>
 # 📚 Problem Statement
 
 <div class="alert alert-block alert-info" style="font-family: verdana; font-size: 20px; line-height: 1.7em; border-radius: 1.3em;">
@@ -19,6 +21,7 @@
     By learning the patterns behind cancellations from historical billing, contract, and service data, we can flag at-risk customers early, understand the drivers, and intervene with the right offer before they leave.
 </div>
 
+<a id="feature-description"></a>
 # 🔭 Feature Description
 
 <div style="font-family:verdana; font-size: 20px; line-height: 1.7em;">
@@ -50,6 +53,7 @@ the combination of factors that determines whether they stay or leave.
 </p>
 </div>
 
+<a id="project-goals"></a>
 # 🎯 Project Goals
 
 <div class="alert alert-block alert-warning" style="font-family: verdana; font-size: 20px; line-height: 1.7em; border-radius: 1.3em;">
@@ -63,8 +67,31 @@ the combination of factors that determines whether they stay or leave.
     </ul>
 </div>
 
+<a id="table-of-contents"></a>
+# 📋 Table of Contents
+
+- [👋 Introduction](#introduction)
+- [📚 Problem Statement](#problem-statement)
+- [🔭 Feature Description](#feature-description)
+- [🎯 Project Goals](#project-goals)
+- [📌 Project Overview](#project-overview)
+- [📦 Setup & Imports](#setup-imports)
+- [🥉 Data Loading (Bronze Layer)](#data-loading-bronze-layer)
+- [✅ Data Quality Validation](#data-quality-validation)
+- [🔍 Exploratory Data Analysis (EDA)](#exploratory-data-analysis-eda)
+- [🛠️ Feature Engineering (Silver → Gold)](#feature-engineering-silver-gold)
+- [🏗️ Model Development](#model-development)
+- [📊 Model Evaluation](#model-evaluation)
+- [🔎 SHAP Explainability](#shap-explainability)
+- [💬 Natural-Language Reasons](#natural-language-reasons)
+- [🤖 LangGraph Retention Agent](#langgraph-retention-agent)
+- [📈 Data Drift Monitoring (Evidently AI)](#data-drift-monitoring-evidently-ai)
+- [🎯 Results & Conclusion](#results-conclusion)
+
+<a id="project-overview"></a>
 # 📌 Project Overview
 
+<a id="the-problem"></a>
 ### The Problem
 
 Telecom companies lose **15&ndash;25% of their customer base every year** to churn. Acquiring a new customer costs **5&ndash;7x more** than retaining an existing one. Yet most providers detect churn too late &mdash; after the customer has already mentally checked out.
@@ -74,6 +101,7 @@ Telecom companies lose **15&ndash;25% of their customer base every year** to chu
     <span style="color: #155724;"> A unified ML platform that predicts churn risk, explains <i>why</i> a customer is at risk, and dispatches an AI-drafted retention offer &mdash; all in one pipeline.</span>
 </div>
 
+<a id="tech-stack-at-a-glance"></a>
 ### Tech Stack at a Glance
 
 | Layer | Technology | Purpose |
@@ -86,6 +114,7 @@ Telecom companies lose **15&ndash;25% of their customer base every year** to chu
 | **Monitoring** | Evidently AI | Data drift detection |
 | **Tracking** | MLflow | Experiment + metric logging |
 
+<a id="key-results-spoiler"></a>
 ### Key Results (Spoiler)
 
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
@@ -107,6 +136,7 @@ Telecom companies lose **15&ndash;25% of their customer base every year** to chu
     </div>
 </div>
 
+<a id="setup-imports"></a>
 # 📦 Setup & Imports
 
 We install the production dependencies that aren't pre-installed on Kaggle. Versions are pinned to match the repo for reproducibility.
@@ -170,6 +200,7 @@ print(f'Pandas     : {pd.__version__}')
 print(f'CUDA       : {"available" if torch.cuda.is_available() else "CPU-only"}')
 ```
 
+<a id="data-loading-bronze-layer"></a>
 # 🥉 Data Loading (Bronze Layer)
 
 <div style="background: #e7f3ff; border-left: 6px solid #007bff; padding: 14px 20px; border-radius: 6px; margin: 12px 0;">
@@ -204,6 +235,7 @@ summary = pd.DataFrame({
 summary
 ```
 
+<a id="data-quality-validation"></a>
 # ✅ Data Quality Validation
 
 We define an **8-check Great Expectations suite** that runs <i>before</i> any model touches the data. If any expectation fails, we halt the pipeline &mdash; treating data quality as a hard gate, not an afterthought.
@@ -285,6 +317,7 @@ display(HTML(f'''
 '''))
 ```
 
+<a id="exploratory-data-analysis-eda"></a>
 # 🔍 Exploratory Data Analysis (EDA)
 
 Now we look at the data: how churn breaks down by contract type, tenure, charges, services, and payment method. These visual patterns directly informed our engineered features in &sect; 6.
@@ -366,6 +399,7 @@ plt.show()
     <span style="color: #721c24;"> Fiber-optic internet, electronic check payments, and paperless billing all roughly <b>double</b> churn probability. These are the levers a retention specialist should pull.</span>
 </div>
 
+<a id="feature-engineering-silver-gold"></a>
 # 🛠️ Feature Engineering (Silver → Gold)
 
 The medallion pattern continues: **Silver** is the cleaned, typed data; **Gold** is the modelling-ready feature matrix.
@@ -455,6 +489,7 @@ plt.tight_layout()
 plt.show()
 ```
 
+<a id="model-development"></a>
 # 🏗️ Model Development
 
 We train two complementary learners and combine them with a fixed-weight ensemble:
@@ -479,6 +514,7 @@ print(f'Train : {len(X_train):,} rows  ({y_train.mean():.2%} churn)')
 print(f'Val   : {len(X_val):,} rows  ({y_val.mean():.2%} churn)')
 ```
 
+<a id="7-1-xgboost-mdash-with-mlflow-tracking"></a>
 ### 7.1 XGBoost &mdash; with MLflow Tracking
 
 ```python
@@ -506,6 +542,7 @@ with mlflow.start_run(run_name='xgb_run'):
 print(f'XGBoost validation AUC: {xgb_auc:.4f}')
 ```
 
+<a id="7-2-pytorch-lstm-mdash-sequence-classifier"></a>
 ### 7.2 PyTorch LSTM &mdash; Sequence Classifier
 
 ```python
@@ -559,6 +596,7 @@ lstm_auc = roc_auc_score(yv.numpy(), lstm_proba)
 print(f'LSTM validation AUC: {lstm_auc:.4f}')
 ```
 
+<a id="7-3-weighted-ensemble"></a>
 ### 7.3 Weighted Ensemble
 
 ```python
@@ -572,6 +610,7 @@ print(f'LSTM     AUC : {lstm_auc:.4f}')
 print(f'Ensemble AUC : {ensemble_auc:.4f}  <-- best')
 ```
 
+<a id="model-evaluation"></a>
 # 📊 Model Evaluation
 
 ```python
@@ -650,6 +689,7 @@ display(HTML(f'''
 '''))
 ```
 
+<a id="shap-explainability"></a>
 # 🔎 SHAP Explainability
 
 <div style="background: #e7f3ff; border-left: 6px solid #007bff; padding: 14px 20px; border-radius: 6px; margin: 12px 0;">
@@ -700,6 +740,7 @@ for i in [0, 5, 17]:
         print(f"  {f['feature']:30s}  value={f['value']:>8.2f}  SHAP={sign}{f['shap_value']:.4f}  ({f['direction']})")
 ```
 
+<a id="natural-language-reasons"></a>
 # 💬 Natural-Language Reasons
 
 SHAP outputs raw feature attributions &mdash; useful for engineers, opaque to retention agents. We bridge the gap with a **rule-based generator** that maps encoded feature names to plain English. This costs nothing (no LLM call) and is deterministic.
@@ -743,6 +784,7 @@ for i in range(3):
     print(f'   Reason: {reason}\n')
 ```
 
+<a id="langgraph-retention-agent"></a>
 # 🤖 LangGraph Retention Agent
 
 The agent is a **2-node LangGraph state machine** powered by Groq LLaMA-3.1.
@@ -856,6 +898,7 @@ display(HTML(f'''
 '''))
 ```
 
+<a id="data-drift-monitoring-evidently-ai"></a>
 # 📈 Data Drift Monitoring (Evidently AI)
 
 Models age. Customer behaviour shifts. We split our data into **reference (first 70%)** and **current (last 30%)** windows to simulate a production drift check &mdash; the same check our Airflow DAG runs daily.
@@ -899,6 +942,7 @@ plt.tight_layout()
 plt.show()
 ```
 
+<a id="results-conclusion"></a>
 # 🎯 Results & Conclusion
 
 ```python
@@ -937,6 +981,7 @@ display(HTML(f'''
 '''))
 ```
 
+<a id="what-we-built"></a>
 ## What We Built
 
 - **Reproducible medallion pipeline** &mdash; Bronze raw, Silver clean, Gold features
@@ -946,6 +991,7 @@ display(HTML(f'''
 - **2-node LangGraph agent** that drafts personalised retention offers
 - **Evidently AI drift monitor** ready for daily Airflow runs
 
+<a id="where-to-take-it-next"></a>
 ## Where to Take It Next
 
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0;">
