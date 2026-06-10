@@ -1,4 +1,4 @@
-# DS-01: Agentic Customer Churn Intelligence Platform
+# Agentic Customer Churn Intelligence Platform
 
 *rohitndev*
 
